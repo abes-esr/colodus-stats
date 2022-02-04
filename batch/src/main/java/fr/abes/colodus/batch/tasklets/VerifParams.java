@@ -1,6 +1,6 @@
-package fr.abes.colodus.stats.tasklets;
+package fr.abes.colodus.batch.tasklets;
 
-import fr.abes.colodus.stats.LogTime;
+import fr.abes.colodus.batch.LogTime;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
@@ -12,7 +12,6 @@ import org.springframework.batch.repeat.RepeatStatus;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 @Slf4j
 public class VerifParams implements Tasklet, StepExecutionListener {

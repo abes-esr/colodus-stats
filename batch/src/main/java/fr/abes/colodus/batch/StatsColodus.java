@@ -1,8 +1,8 @@
-package fr.abes.colodus.stats;
+package fr.abes.colodus.batch;
 
-import fr.abes.colodus.stats.tasklets.GenerateStatsTasklet;
-import fr.abes.colodus.stats.tasklets.ReadFilesTasklet;
-import fr.abes.colodus.stats.tasklets.VerifParams;
+import fr.abes.colodus.batch.tasklets.GenerateStatsTasklet;
+import fr.abes.colodus.batch.tasklets.ReadFilesTasklet;
+import fr.abes.colodus.batch.tasklets.VerifParams;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;

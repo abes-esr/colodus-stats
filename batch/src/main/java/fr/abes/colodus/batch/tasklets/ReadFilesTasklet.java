@@ -1,6 +1,6 @@
-package fr.abes.colodus.stats.tasklets;
+package fr.abes.colodus.batch.tasklets;
 
-import fr.abes.colodus.stats.dto.SourceStatDto;
+import fr.abes.colodus.batch.dto.SourceStatDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;

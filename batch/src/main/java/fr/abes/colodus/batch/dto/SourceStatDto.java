@@ -1,4 +1,4 @@
-package fr.abes.colodus.stats.dto;
+package fr.abes.colodus.batch.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
