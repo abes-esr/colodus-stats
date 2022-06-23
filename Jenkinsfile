@@ -26,6 +26,7 @@ node {
 
     // Definition du module batch
     def batchTargetDir = "/home/batch/colodusStats/"
+    def backApplicationFileName = "colodusStats"
 
     // **** FIN DE ZONE A EDITER n°1 ****
 
@@ -82,7 +83,7 @@ node {
                     stringParam(defaultValue: '', description: "Numéro du build à déployer. Retrouvez vos précédents builds sur https://artifactory.abes.fr/artifactory/webapp/#/builds/${artifactoryBuildName}", name: 'BUILD_NUMBER'),
                     booleanParam(defaultValue: false, description: 'Voulez-vous deployer sur Artifactory ?', name: 'deployArtifactoy'),
                     booleanParam(defaultValue: false, description: 'Voulez-vous exécuter les tests ?', name: 'executeTests'),
-                    choice(choices: ['DEV', 'TEST', 'PROD'], description: 'Sélectionner l\'environnement cible', name: 'ENV')
+                    choice(choices: ['PROD'], description: 'Sélectionner l\'environnement cible', name: 'ENV')
             ])
     ])
 
@@ -283,9 +284,9 @@ node {
             //-------------------------------
             stage("[${candidateModules[moduleIndex]}] Compile package") {
                 try {
-                    sh "'${maventool}/bin/mvn' -Dmaven.test.skip='${!executeTests}' clean package  -pl ${candidateModules[moduleIndex]} -am -P${mavenProfil} -DwarName='${backApplicationFileName}' -DwebBaseDir='${backTargetDir}${backApplicationFileName}' -DbatchBaseDir='${batchTargetDir}${backApplicationFileName}'"
+                    sh "'${maventool}/bin/mvn' -Dmaven.test.skip='${!executeTests}' clean package  -pl ${candidateModules[moduleIndex]} -am -P${mavenProfil} -DbatchBaseDir='${batchTargetDir}${backApplicationFileName}'"
                     // ATTENTION #1, rtMaven.run ne tient pas compte des arguments de compilation -D
-                    //buildInfo = rtMaven.run pom: 'pom.xml', goals: "clean package -Dmaven.test.skip=${!executeTests} -pl ${candidateModules[moduleIndex]} -am -P${mavenProfil} -DfinalName=${backApplicationFileName} -DwebBaseDir=${backTargetDir}${backApplicationFileName} -DbatchBaseDir=${batchTargetDir}${backApplicationFileName}".toString()
+                    //buildInfo = rtMaven.run pom: 'pom.xml', goals: "clean package -Dmaven.test.skip=${!executeTests} -pl ${candidateModules[moduleIndex]} -am -P${mavenProfil} -DfinalName=${backApplicationFileName}-DbatchBaseDir=${batchTargetDir}${backApplicationFileName}".toString()
 
                 } catch (e) {
                     currentBuild.result = hudson.model.Result.FAILURE.toString()
@@ -303,7 +304,7 @@ node {
             stage("[${candidateModules[moduleIndex]}] Archive to Artifactory") {
                 try {
                     rtMaven.deployer server: artifactoryServer, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-snapshot-local'
-                    buildInfo = rtMaven.run pom: 'pom.xml', goals: "clean package -Dmaven.test.skip=${!executeTests} -P${mavenProfil} -DwarName=${backApplicationFileName} -DwebBaseDir=${backTargetDir}${backApplicationFileName} -DbatchBaseDir=${batchTargetDir}".toString()
+                    buildInfo = rtMaven.run pom: 'pom.xml', goals: "clean package -Dmaven.test.skip=${!executeTests} -P${mavenProfil}  -DbatchBaseDir=${batchTargetDir}".toString()
                     buildInfo.name = "${artifactoryBuildName}"
                     rtMaven.deployer.deployArtifacts buildInfo
                     artifactoryServer.publishBuildInfo buildInfo
@@ -381,89 +382,7 @@ node {
                     throw e
                 }
             }
-
-            //-------------------------------
-            // Etape 4.1 : Serveur Web
-            //-------------------------------
-            if ("${candidateModules[moduleIndex]}" == 'web') {
-
-                stage("Deploy to web servers") {
-
-                    for (int i = 0; i < backTargetHostnames.size(); i++) { //Pour chaque serveur
-                        withCredentials([
-                                usernamePassword(credentialsId: 'tomcatuser', passwordVariable: 'pass', usernameVariable: 'username'),
-                                string(credentialsId: "${backTargetHostnames[i]}", variable: 'hostname'),
-                                string(credentialsId: 'service.status', variable: 'status'),
-                                string(credentialsId: 'service.stop', variable: 'stop'),
-                                string(credentialsId: 'service.start', variable: 'start')
-                        ]) {
-
-                            echo "Stop service on ${backTargetHostnames[i]}"
-                            echo "--------------------------"
-
-                            try {
-
-                                try {
-                                    echo 'get service status'
-                                    sh "ssh -tt ${username}@${hostname} \"${status} ${backServiceName}\""
-
-                                    echo 'stop the service'
-                                    sh "ssh -tt ${username}@${hostname} \"${stop} ${backServiceName}\""
-
-                                } catch (e) {
-                                    // Maybe the tomcat is not running
-                                    echo 'maybe the service is not running'
-
-                                    echo 'we try to start the service'
-                                    sh "ssh -tt ${username}@${hostname} \"${start} ${backServiceName}\""
-
-                                    echo 'get service status'
-                                    sh "ssh -tt ${username}@${hostname} \"${status} ${backServiceName}\""
-
-                                    echo 'stop the service'
-                                    sh "ssh -tt ${username}@${hostname} \"${stop} ${backServiceName}\""
-                                }
-
-                            } catch (e) {
-                                currentBuild.result = hudson.model.Result.FAILURE.toString()
-                                notifySlack(slackChannel, "Failed to stop the web service on ${backTargetHostnames[i]} :" + e.getLocalizedMessage())
-                                throw e
-                            }
-
-                            echo "Deploy to ${backTargetHostnames[i]}"
-                            echo "--------------------------"
-
-                            try {
-                                sh "ssh -tt ${username}@${hostname} \"rm -rf ${backTargetDir}${backApplicationFileName} ${backTargetDir}${backApplicationFileName}.war\""
-                                sh "scp ${candidateModules[moduleIndex]}/target/${backApplicationFileName}.war ${username}@${hostname}:${backTargetDir}"
-
-                            } catch (e) {
-                                currentBuild.result = hudson.model.Result.FAILURE.toString()
-                                notifySlack(slackChannel, "Failed to deploy the webapp to ${backTargetHostnames[i]} :" + e.getLocalizedMessage())
-                                throw e
-                            }
-
-                            echo "Restart service on ${backTargetHostnames[i]}"
-                            echo "--------------------------"
-
-                            try {
-                                echo 'start service'
-                                sh "ssh -tt ${username}@${hostname} \"${start} ${backServiceName}\""
-
-                                echo 'get service status'
-                                sh "ssh -tt ${username}@${hostname} \"${status} ${backServiceName}\""
-
-                            } catch (e) {
-                                currentBuild.result = hudson.model.Result.FAILURE.toString()
-                                notifySlack(slackChannel, "Failed to restrat the web service on ${backTargetHostnames[i]} :" + e.getLocalizedMessage())
-                                throw e
-                            }
-                        }
-
-                    }//Pour chaque serveur
-                }
-            }
-
+            
             //-------------------------------
             // Etape 4.2 : Serveur Batch
             //-------------------------------
