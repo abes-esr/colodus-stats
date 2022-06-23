@@ -57,7 +57,7 @@ public class GenerateStatsTasklet implements Tasklet, StepExecutionListener {
             listeOut.add(dto);
         });
         FileWriter out = new FileWriter(uploadPath + "colodus_" + annee + mois);
-        try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withDelimiter(';'))) {
+        try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withDelimiter(';').withRecordSeparator('\n'))) {
             listeOut.forEach(dto -> {
                 try {
                     printer.printRecord(dto.getIln(), dto.getCreation(), dto.getModification(), dto.getSuppression(), dto.getCreationLocalisation(), dto.getModificationLocalisation(), dto.getSuppressionLocalisation());
