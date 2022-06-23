@@ -83,7 +83,7 @@ node {
                     stringParam(defaultValue: '', description: "Numéro du build à déployer. Retrouvez vos précédents builds sur https://artifactory.abes.fr/artifactory/webapp/#/builds/${artifactoryBuildName}", name: 'BUILD_NUMBER'),
                     booleanParam(defaultValue: false, description: 'Voulez-vous deployer sur Artifactory ?', name: 'deployArtifactoy'),
                     booleanParam(defaultValue: false, description: 'Voulez-vous exécuter les tests ?', name: 'executeTests'),
-                    choice(choices: ['DEV', 'TEST', 'PROD'], description: 'Sélectionner l\'environnement cible', name: 'ENV')
+                    choice(choices: ['PROD'], description: 'Sélectionner l\'environnement cible', name: 'ENV')
             ])
     ])
 
