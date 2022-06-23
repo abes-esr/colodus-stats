@@ -50,11 +50,6 @@ node {
 
     // Definition des actions
     def choiceParams = ['Compiler', 'Compiler & Déployer', 'Déployer un précédent build']
-    for (int moduleIndex = 0; moduleIndex < modulesNames.size(); moduleIndex++) { //Pour chaque module du projet
-        choiceParams.add("[${modulesNames[moduleIndex]}] Compiler le module")
-        choiceParams.add("[${modulesNames[moduleIndex]}] Compiler & Déployer le module")
-        choiceParams.add("[${modulesNames[moduleIndex]}] Déployer un précédent build")
-    }
 
     // Configuration du job Jenkins
     // On garde les 5 derniers builds par branche
@@ -284,7 +279,7 @@ node {
             //-------------------------------
             stage("[${candidateModules[moduleIndex]}] Compile package") {
                 try {
-                    sh "'${maventool}/bin/mvn' -Dmaven.test.skip='${!executeTests}' clean package  -pl ${candidateModules[moduleIndex]} -am -P${mavenProfil} -DbatchBaseDir='${batchTargetDir}${backApplicationFileName}'"
+                    sh "'${maventool}/bin/mvn' -Dmaven.test.skip='${!executeTests}' clean package  -pl ${candidateModules[moduleIndex]} -am -P${mavenProfil} -DwarName=${backApplicationFileName} -DfinalName=${backApplicationFileName} -DbatchBaseDir='${batchTargetDir}${backApplicationFileName}'"
                     // ATTENTION #1, rtMaven.run ne tient pas compte des arguments de compilation -D
                     //buildInfo = rtMaven.run pom: 'pom.xml', goals: "clean package -Dmaven.test.skip=${!executeTests} -pl ${candidateModules[moduleIndex]} -am -P${mavenProfil} -DfinalName=${backApplicationFileName}-DbatchBaseDir=${batchTargetDir}${backApplicationFileName}".toString()
 
@@ -304,7 +299,7 @@ node {
             stage("[${candidateModules[moduleIndex]}] Archive to Artifactory") {
                 try {
                     rtMaven.deployer server: artifactoryServer, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-snapshot-local'
-                    buildInfo = rtMaven.run pom: 'pom.xml', goals: "clean package -Dmaven.test.skip=${!executeTests} -P${mavenProfil}  -DbatchBaseDir=${batchTargetDir}".toString()
+                    buildInfo = rtMaven.run pom: 'pom.xml', goals: "clean package -Dmaven.test.skip=${!executeTests} -P${mavenProfil} -DwarName=${backApplicationFileName} -DfinalName=${backApplicationFileName} -DbatchBaseDir=${batchTargetDir}".toString()
                     buildInfo.name = "${artifactoryBuildName}"
                     rtMaven.deployer.deployArtifacts buildInfo
                     artifactoryServer.publishBuildInfo buildInfo
