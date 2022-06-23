@@ -279,7 +279,7 @@ node {
             //-------------------------------
             stage("[${candidateModules[moduleIndex]}] Compile package") {
                 try {
-                    sh "'${maventool}/bin/mvn' -Dmaven.test.skip='${!executeTests}' clean package  -pl ${candidateModules[moduleIndex]} -am -P${mavenProfil} -DfinalName=${backApplicationFileName} -DbatchBaseDir='${batchTargetDir}${backApplicationFileName}'"
+                    sh "'${maventool}/bin/mvn' -Dmaven.test.skip='${!executeTests}' clean package  -pl ${candidateModules[moduleIndex]} -am -P${mavenProfil} -DwarName=${backApplicationFileName} -DfinalName=${backApplicationFileName} -DbatchBaseDir='${batchTargetDir}${backApplicationFileName}'"
                     // ATTENTION #1, rtMaven.run ne tient pas compte des arguments de compilation -D
                     //buildInfo = rtMaven.run pom: 'pom.xml', goals: "clean package -Dmaven.test.skip=${!executeTests} -pl ${candidateModules[moduleIndex]} -am -P${mavenProfil} -DfinalName=${backApplicationFileName}-DbatchBaseDir=${batchTargetDir}${backApplicationFileName}".toString()
 
@@ -299,7 +299,7 @@ node {
             stage("[${candidateModules[moduleIndex]}] Archive to Artifactory") {
                 try {
                     rtMaven.deployer server: artifactoryServer, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-snapshot-local'
-                    buildInfo = rtMaven.run pom: 'pom.xml', goals: "clean package -Dmaven.test.skip=${!executeTests} -P${mavenProfil} -DfinalName=${backApplicationFileName} -DbatchBaseDir=${batchTargetDir}".toString()
+                    buildInfo = rtMaven.run pom: 'pom.xml', goals: "clean package -Dmaven.test.skip=${!executeTests} -P${mavenProfil} -DwarName=${backApplicationFileName} -DfinalName=${backApplicationFileName} -DbatchBaseDir=${batchTargetDir}".toString()
                     buildInfo.name = "${artifactoryBuildName}"
                     rtMaven.deployer.deployArtifacts buildInfo
                     artifactoryServer.publishBuildInfo buildInfo
