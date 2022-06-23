@@ -50,11 +50,6 @@ node {
 
     // Definition des actions
     def choiceParams = ['Compiler', 'Compiler & Déployer', 'Déployer un précédent build']
-    for (int moduleIndex = 0; moduleIndex < modulesNames.size(); moduleIndex++) { //Pour chaque module du projet
-        choiceParams.add("[${modulesNames[moduleIndex]}] Compiler le module")
-        choiceParams.add("[${modulesNames[moduleIndex]}] Compiler & Déployer le module")
-        choiceParams.add("[${modulesNames[moduleIndex]}] Déployer un précédent build")
-    }
 
     // Configuration du job Jenkins
     // On garde les 5 derniers builds par branche
@@ -304,7 +299,7 @@ node {
             stage("[${candidateModules[moduleIndex]}] Archive to Artifactory") {
                 try {
                     rtMaven.deployer server: artifactoryServer, releaseRepo: 'libs-release-local', snapshotRepo: 'libs-snapshot-local'
-                    buildInfo = rtMaven.run pom: 'pom.xml', goals: "clean package -Dmaven.test.skip=${!executeTests} -P${mavenProfil}  -DbatchBaseDir=${batchTargetDir}".toString()
+                    buildInfo = rtMaven.run pom: 'pom.xml', goals: "clean package -Dmaven.test.skip=${!executeTests} -P${mavenProfil} -DfinalName=${backApplicationFileName} -DbatchBaseDir=${batchTargetDir}".toString()
                     buildInfo.name = "${artifactoryBuildName}"
                     rtMaven.deployer.deployArtifacts buildInfo
                     artifactoryServer.publishBuildInfo buildInfo
