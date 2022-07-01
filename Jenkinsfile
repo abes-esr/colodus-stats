@@ -258,8 +258,8 @@ node {
                             string(credentialsId: "source-directory-${mavenProfil}", variable: 'source'),
                             string(credentialsId: "destination-directory-${mavenProfil}", variable: 'destination'),
                         ]) {
-                            newconfig = newconfig.replaceAll("source.directory=*", "spring.datasource.url=${source}")
-                            newconfig = newconfig.replaceAll("destination.directory=*", "spring.datasource.username=${destination}")
+                            newconfig = newconfig.replaceAll("source.directory=*", "source.directory=${source}")
+                            newconfig = newconfig.replaceAll("destination.directory=*", "destination.directory=${destination}")
                             }
                         }
 
