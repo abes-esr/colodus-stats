@@ -126,7 +126,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>fr.abes.colodus.BatchApplication</mainClass>
+                    <mainClass>fr.abes.colodus.batch.BatchApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
