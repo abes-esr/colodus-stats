@@ -62,11 +62,17 @@ public class ReadFilesTasklet implements Tasklet, StepExecutionListener {
                 try {
                     Reader f = new FileReader(repertoire + fichier);
                     Iterable<CSVRecord> records = CSVFormat.DEFAULT.withDelimiter(';').parse(f);
+                    int i=0;
                     for (CSVRecord record : records) {
-                        //on teste si la 3è colonne matche bien sur un iln pour gérer les cas d'erreur dans le fichier source
-                        if (record.get(2).matches("\\d*")) {
-                            SourceStatDto source = new SourceStatDto(record.get(0), record.get(1), Integer.parseInt(record.get(2)), record.get(3), record.get(4));
-                            this.listeStats.add(source);
+                        i++;
+                        try {
+                            //on teste si la 3è colonne matche bien sur un iln pour gérer les cas d'erreur dans le fichier source
+                            if (record.get(2).matches("\\d*")) {
+                                SourceStatDto source = new SourceStatDto(record.get(0), record.get(1), Integer.parseInt(record.get(2)), record.get(3), record.get(4));
+                                this.listeStats.add(source);
+                            }
+                        }catch (IndexOutOfBoundsException e) {
+                            log.error("Erreur sur fichier " + fichier + " / ligne " + i);
                         }
                     }
                 }
